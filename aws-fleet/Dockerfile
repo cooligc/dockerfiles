@@ -8,9 +8,9 @@ RUN apt-get update && \
     ssh-keyscan github.com >> /root/.ssh/known_hosts && \
     gem install aws-sdk
 
-RUN wget https://github.com/coreos/fleet/releases/download/v0.10.0/fleet-v0.10.0-linux-amd64.tar.gz && \
-    tar -xzvf fleet-v0.10.0-linux-amd64.tar.gz && \
-    mv fleet-v0.10.0-linux-amd64/fleetctl ./
+RUN wget https://github.com/coreos/fleet/releases/download/v0.9.2/fleet-v0.9.2-linux-amd64.tar.gz && \
+    tar -xzvf fleet-v0.9.2-linux-amd64.tar.gz && \
+    mv fleet-v0.9.2-linux-amd64/fleetctl ./
 
 RUN mkdir /keys
 VOLUME /keys
