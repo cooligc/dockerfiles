@@ -6,23 +6,25 @@ require 'aws-sdk'
 STDOUT.sync = true
 
 $environment=ARGV[0]
-$fleet_command=ARGV[1]
+$fleet_action=ARGV[1]
 $service=ARGV[2]
 
 $node_prefix="service-node-"
 
 puts "Environment: #{$environment}"
-puts "Executing fleet command: #{$fleet_command}"
-
+puts "Executing fleet command: #{$fleet_action}"
 
 if not $service.nil? then
-  puts "Service: #{$service}"
-  $service_file="/services/#{$service}.service"
-  if not File.exist?($service_file) then
-    abort "Service file #{$service_file} does not exist."
+  if $service == 'all' then
+    puts "Service: ALL SERVICES"
   else
-    puts "Running fleet command '#{$fleet_command}'' on service #{$service_file}..."
-    $fleet_command="#{$fleet_command} #{$service_file}"
+    puts "Service: #{$service}"
+    $service_file="/services/#{$service}.service"
+    if not File.exist?($service_file) then
+      abort "Service file #{$service_file} does not exist."
+    else
+      puts "Running fleet command '#{$fleet_action}' on service #{$service_file}..."
+    end
   end
 end
 
@@ -43,15 +45,32 @@ def service_nodes()
   end
 end
 
-$nodes=service_nodes()
+def get_fleet_args()
+  nodes=service_nodes()
+  if nodes.empty?
+    abort "No running nodes matching #{$node_prefix}* could be found in environment #{$environment}."
+  end
+  hostname=nodes.first[:public_ip_address]
+  tunnel = "#{hostname}:22"
+  return "--strict-host-key-checking=false --tunnel=#{tunnel}"
+end
 
-if $nodes.empty? then
-  abort "No running nodes matching #{$node_prefix}* could be found in environment #{$environment}."
-else
-  $hostname=$nodes.first[:public_ip_address]
-  $tunnel = "#{$hostname}:22"
-  puts "Using fleet tunnel: #{$tunnel}"
-  $fleet_args="--strict-host-key-checking=false --tunnel=#{$tunnel}"
-  cmd="./fleetctl #{$fleet_args} #{$fleet_command}"
+
+def call_fleet(fleet_action, service_file, fleet_args)
+  fleet_cmd="#{fleet_action} #{service_file}"
+  cmd="./fleetctl #{fleet_args} #{fleet_cmd}"
+  puts "#{fleet_cmd}"
   puts %x{#{cmd}}
+end
+
+fleet_args = get_fleet_args()
+puts "Using fleet args: #{fleet_args}"
+
+if($service=='all') then
+  Dir.foreach('/services') do |file|
+    next if file == '.' or file == '..' or not file.end_with? '.service'
+    call_fleet($fleet_action, "/services/#{file}", fleet_args)
+  end
+else
+  call_fleet($fleet_action, "/services/#{$service}.service", fleet_args)
 end
