@@ -7,3 +7,6 @@ RUN mkdir -p /opt/consul-template && \
     | tar -xvzC /opt/consul-template && \
     mv /opt/consul-template/consul-template_0.8.0_linux_amd64/consul-template /opt/consul-template/consul-template && \
     rm -rf /opt/consul-template/consul-template_0.8.0_linux_amd64
+
+RUN mkdir -p /templates
+VOLUME /templates
