@@ -1,2 +1,2 @@
-FROM registry.global.gravity:8443/gravity/logspout:v11
+FROM vivekjuneja/logspout
 ENV SYSLOG_FORMAT rfc3164
